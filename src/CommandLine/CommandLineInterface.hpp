@@ -11,7 +11,8 @@ typedef enum CFLAGTYPE {
     CFLAG_OUTPUTFILE,
 
     CFLAG_HELP,
-    CFLAG_VERSION
+    CFLAG_VERSION,
+    CFLAG_DEBUG
 } CFLAGTYPE;
 
 typedef struct CFLAG {

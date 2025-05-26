@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-#define Version "1.0.0"
+#include "config.hpp"
 
 #include "CommandLine\CommandLineInterface.hpp"
 #include "CommandLine\Output.hpp"
@@ -44,6 +44,10 @@ int main(int argc, char* argv[]) {
 
             case CFLAG_VERSION:
                 std::cout << Version << std::endl;
+                break;
+
+            case CFLAG_DEBUG:
+                DEBUG = true;
                 break;
             
             default:
@@ -87,9 +91,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<Token> SourceTokens = Tokenize(Source);
 
-    for (Token CurrentToken : SourceTokens) {
-        std::cout << "TYPE: " + std::to_string(CurrentToken.Type) + " | VALUE: " + CurrentToken.Value << std::endl;
-    }
+    log(2, "Parsing Tokens, " + std::to_string(SourceTokens.size()) + " Total Tokens");
 
     return 0;
 }

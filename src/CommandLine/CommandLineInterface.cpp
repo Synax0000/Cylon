@@ -21,18 +21,25 @@ std::vector<Command> Commands = {
         "Tells the Compiler what the Compiled Executable should be named"
     ),
 
-        Command(
+    Command(
         CFLAG_HELP,
         false,
         {"-h","--help"},
         "Displays all available Commands"
     ),
 
-        Command(
+    Command(
         CFLAG_VERSION,
         false,
         {"-v","--version"},
         "Displays current Cylon Version"
+    ),
+
+    Command(
+        CFLAG_DEBUG,
+        false,
+        {"-d","--debug"},
+        "Enables the debug output for Cylon"
     ),
 };
 

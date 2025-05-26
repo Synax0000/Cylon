@@ -15,7 +15,6 @@ typedef enum TokenType {
 
 typedef enum TokenVariant {
     // TokenType_Identifier
-    TokenVariant_Keyword,
     TokenVariant_Method,
 
     // TokenType_Number
@@ -33,14 +32,17 @@ typedef enum TokenVariant {
     TokenVariant_Divide,
     TokenVariant_Multiply,
     TokenVariant_Power,
-    TokenVarient_Equal,
+    TokenVarient_Assign,
+    TokenVariant_Inequality, 
 
     // TokenType_Symbol
     TokenVariant_Bracket,
     TokenVariant_Parentheses,
-    TokenVariant_Inequality,
     TokenVariant_Dot,
     TokenVariant_Colon,
+    TokenVariant_Comma,
+    TokenVariant_SemiColon,
+    TokenVariant_SquareBrackets,
 } TokenVariant;
 
 typedef struct Token {
@@ -54,17 +56,5 @@ typedef struct Token {
         Value = StringValue;
     }
 } Token;
-
-typedef struct Type {
-    std::vector<TokenType> TargetTypes;
-    std::string TargetCharacters;
-
-    Type(std::vector<TokenType> TargetTypesValue, std::string TargetCharactersValue) {
-        TargetTypes = TargetTypesValue;
-        TargetCharacters = TargetCharactersValue;
-    }
-} Type;
-
-extern std::vector<Type> TokenMeanings;
 
 #endif

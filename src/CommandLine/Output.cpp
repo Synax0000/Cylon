@@ -5,7 +5,7 @@
 
 #include <Windows.h>
 
-#define DEBUG // Temp for now, will be moved to another file when needed
+#include "../config.hpp"
 
 void log(int LogLevel, std::string Text) {
     HANDLE StandardHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -25,9 +25,9 @@ void log(int LogLevel, std::string Text) {
             FullText += "[INFO] ";
             break;
         case 2:
-            #ifndef DEBUG
+            if (DEBUG == false) {
                 return;
-            #endif
+            }
 
             SetConsoleTextAttribute(StandardHandle, FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY);
             FullText += "[DEBUG] ";
@@ -40,11 +40,11 @@ void log(int LogLevel, std::string Text) {
 
     FullText += Text + ".";
 
-    #ifdef DEBUG
+    if (DEBUG == true) {
         if (LogLevel == -1) {
             FullText += " Error Code: " + std::to_string(GetLastError());
         }
-    #endif
+    }
 
     std::cout << FullText << std::endl;
     SetConsoleTextAttribute(StandardHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
