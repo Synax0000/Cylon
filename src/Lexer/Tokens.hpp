@@ -32,7 +32,7 @@ typedef enum TokenVariant {
     TokenVariant_Divide,
     TokenVariant_Multiply,
     TokenVariant_Power,
-    TokenVarient_Assign,
+    TokenVariant_Assign,
     TokenVariant_Inequality, 
 
     // TokenType_Symbol
@@ -43,17 +43,20 @@ typedef enum TokenVariant {
     TokenVariant_Comma,
     TokenVariant_SemiColon,
     TokenVariant_SquareBrackets,
+    TokenVariant_NewLine,
 } TokenVariant;
 
 typedef struct Token {
     TokenType Type;
     TokenVariant Variant;
     std::string Value;
+    int CharacterIndex;
     
-    Token(TokenType TypeValue,TokenVariant TokenVariantValue, std::string StringValue) {
+    Token(TokenType TypeValue,TokenVariant TokenVariantValue, std::string StringValue, int CharacterIndexValue) {
         Type = TypeValue;
         Variant = TokenVariantValue;
         Value = StringValue;
+        CharacterIndex = CharacterIndexValue;
     }
 } Token;
 

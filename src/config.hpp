@@ -2,7 +2,6 @@
 #define CONFIG_HPP
 
 #define Version "1.0.0"
-
-extern bool DEBUG = false;
+extern bool DEBUG;
 
 #endif

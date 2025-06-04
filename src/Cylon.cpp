@@ -12,6 +12,9 @@
 #include "Lexer\Tokenizer.hpp"
 #include "Lexer\Tokens.hpp"
 
+#include "Parser\AbstractSyntaxTree.hpp"
+#include "Parser\Parser.hpp"
+
 int main(int argc, char* argv[]) {
     std::vector<CFLAG> CFLAGS = GetFlags(argc,argv);
     
@@ -54,6 +57,7 @@ int main(int argc, char* argv[]) {
                 break;
         }
     }
+    
     std::string InputFile = GetFlag(CFLAGS, CFLAG_INPUTFILE).Value;
 
     if (InputFile == "") {
@@ -91,7 +95,17 @@ int main(int argc, char* argv[]) {
 
     std::vector<Token> SourceTokens = Tokenize(Source);
 
-    log(2, "Parsing Tokens, " + std::to_string(SourceTokens.size()) + " Total Tokens");
+    size_t LastSlash = InputFile.find_last_of("/\\");
+    std::string FileName = InputFile.substr(LastSlash + 1);
+
+    ProgramNode AstTree = Parse(SourceTokens, FileName, InputFile);
+
+    log(2, "Displaying generated Ast Tree");
+
+    if (DEBUG == true) {
+        std::cout << std::endl;
+        VisualizeNode(&AstTree, 0);
+    }
 
     return 0;
 }
