@@ -10,7 +10,9 @@ bool IsStringAlpha(std::string Text);
 bool IsStringDigit(std::string Text);
 int HasCharacterInString(std::string Text, char TargetCharacter);
 std::string OperatorTypeToString(TokenVariant Variant);
+std::string TokenTypeToString(TokenVariant Variant);
 std::string NumberTypeToString(TokenVariant Variant);
 std::string GetLineSnippet(std::string FilePath, int Line);
+
 
 #endif

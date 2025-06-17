@@ -6,6 +6,6 @@
 #ifndef TOKENIZER_HPP
 #define TOKENIZER_HPP
 
-std::vector<Token> Tokenize(std::string Source);
+std::vector<Token> Tokenize(std::string Source, std::string FilePath);
 
 #endif

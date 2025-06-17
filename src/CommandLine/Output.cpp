@@ -5,7 +5,8 @@
 
 #include <Windows.h>
 
-#include "../config.hpp"
+#include "../Config.hpp"
+#include "../Utils.hpp"
 
 void log(int LogLevel, std::string Text) {
     HANDLE StandardHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -48,4 +49,12 @@ void log(int LogLevel, std::string Text) {
 
     std::cout << FullText << std::endl;
     SetConsoleTextAttribute(StandardHandle, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+}
+
+void logsnippet(int LogLevel, std::string FilePath, std::string Context, int Line, int Character) {
+    std::string Spaces = std::string(" ", Character);
+
+    log(LogLevel, "[ " + FilePath + " ] " + Context);
+    std::cout << "> " + GetLineSnippet(FilePath, Line) << std::endl;
+    std::cout << Spaces +  "  ^" << std::endl;
 }

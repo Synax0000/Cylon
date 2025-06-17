@@ -5,13 +5,13 @@
 #ifndef TOKENS_HPP
 #define TOKENS_HPP
 
-typedef enum TokenType {
+typedef enum cTokenType { // "c" is placed there to avoid windows conflicts 
     TokenType_Identifier,
     TokenType_Number,
     TokenType_String,
     TokenType_Operator,
     TokenType_Symbol
-} TokenType;
+} cTokenType;
 
 typedef enum TokenVariant {
     // TokenType_Identifier
@@ -47,16 +47,19 @@ typedef enum TokenVariant {
 } TokenVariant;
 
 typedef struct Token {
-    TokenType Type;
+    cTokenType Type;
     TokenVariant Variant;
     std::string Value;
-    int CharacterIndex;
     
-    Token(TokenType TypeValue,TokenVariant TokenVariantValue, std::string StringValue, int CharacterIndexValue) {
+    int CharacterIndex;
+    int LineIndex;
+    
+    Token(cTokenType TypeValue,TokenVariant TokenVariantValue, std::string StringValue, int CharacterIndexValue, int LineIndexValue) {
         Type = TypeValue;
         Variant = TokenVariantValue;
         Value = StringValue;
         CharacterIndex = CharacterIndexValue;
+        LineIndex = LineIndexValue;
     }
 } Token;
 

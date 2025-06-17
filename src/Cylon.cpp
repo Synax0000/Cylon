@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-#include "config.hpp"
+#include "Config.hpp"
 
 #include "CommandLine\CommandLineInterface.hpp"
 #include "CommandLine\Output.hpp"
@@ -15,9 +15,11 @@
 #include "Parser\AbstractSyntaxTree.hpp"
 #include "Parser\Parser.hpp"
 
+#include "Utils.hpp"
+
 int main(int argc, char* argv[]) {
     std::vector<CFLAG> CFLAGS = GetFlags(argc,argv);
-    
+
     for (CFLAG Flag : CFLAGS) {
         switch (Flag.Type)
         {
@@ -58,6 +60,7 @@ int main(int argc, char* argv[]) {
         }
     }
     
+    log(2, "Getting input file from cflag");
     std::string InputFile = GetFlag(CFLAGS, CFLAG_INPUTFILE).Value;
 
     if (InputFile == "") {
@@ -65,6 +68,7 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
+    log(2, "Opening input file");
     std::ifstream File(InputFile);
 
     if (!File.is_open()) {
@@ -72,6 +76,7 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
+    log(2, "Reading file contents");
     std::ostringstream StringStream;
     StringStream << File.rdbuf();
 
@@ -93,7 +98,20 @@ int main(int argc, char* argv[]) {
 
     log(2, "Tokenizing Source '" + InputFile + "'");
 
-    std::vector<Token> SourceTokens = Tokenize(Source);
+    std::vector<Token> SourceTokens = Tokenize(Source, InputFile);
+    
+    log(2, "Displaying generated tokens");
+
+    if (DEBUG == true) { 
+        for (Token CurrentToken : SourceTokens) {
+            std::cout << "\n" + TokenTypeToString(CurrentToken.Variant) + ":" << std::endl;
+            std::cout << " Line: " + std::to_string(CurrentToken.LineIndex) << std::endl;
+            std::cout << " Character: " + std::to_string(CurrentToken.CharacterIndex + 1) << std::endl;
+            std::cout << " Value: " + CurrentToken.Value << std::endl;
+        }
+
+        std::cout << std::endl;
+    }
 
     size_t LastSlash = InputFile.find_last_of("/\\");
     std::string FileName = InputFile.substr(LastSlash + 1);
@@ -104,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     if (DEBUG == true) {
         std::cout << std::endl;
-        VisualizeNode(&AstTree, 0);
+        VisualizeNode(&AstTree, 0, 12);
     }
 
     return 0;

@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include "Utils.hpp"
 
 #include "Lexer/Tokens.hpp"
 
@@ -87,6 +87,35 @@ std::string NumberTypeToString(TokenVariant Variant) {
             return "Unknown Type";
     }
 }
+
+std::string TokenTypeToString(TokenVariant Variant) {
+    switch (Variant) {
+        case TokenVariant_Method: return "Method";
+        case TokenVariant_Integer: return "Integer";
+        case TokenVariant_Float: return "Float";
+        case TokenVariant_Double: return "Double";
+        case TokenVariant_String: return "String";
+        case TokenVariant_Character: return "Character";
+        case TokenVariant_Add: return "Add";
+        case TokenVariant_Subtract: return "Subtract";
+        case TokenVariant_Divide: return "Divide";
+        case TokenVariant_Multiply: return "Multiply";
+        case TokenVariant_Power: return "Power";
+        case TokenVariant_Assign: return "Assign";
+        case TokenVariant_Inequality: return "Inequality";
+        case TokenVariant_Bracket: return "Bracket";
+        case TokenVariant_Parentheses: return "Parentheses";
+        case TokenVariant_Dot: return "Dot";
+        case TokenVariant_Colon: return "Colon";
+        case TokenVariant_Comma: return "Comma";
+        case TokenVariant_SemiColon: return "Semicolon";
+        case TokenVariant_SquareBrackets: return "SquareBrackets";
+        case TokenVariant_NewLine: return "Newline";
+        default: return "Unknown";
+    }
+}
+
+
 std::string GetLineSnippet(std::string FilePath, int Line) {
     std::ifstream File(FilePath);
 

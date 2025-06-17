@@ -1,3 +1,3 @@
-#include "config.hpp"
+#include "Config.hpp"
 
 extern bool DEBUG = false;

@@ -13,22 +13,29 @@ typedef enum AstNodeType {
     AstNodeType_ModuleNode,
     AstNodeType_NumberNode,
     AstNodeType_OperatorNode,
+    AstNodeType_GroupNode,
 } AstNodeType;
 
 typedef struct AstNode {
     AstNodeType NodeType;
-    std::vector<AstNode*> Children;
+
     int CreationLine;
     int CharacterIndex;
 
     AstNode(AstNodeType NodeTypeValue, int CreationLineValue, int CharacterIndexValue) {
-        Children = {};
-
         NodeType = NodeTypeValue;
         CreationLine = CreationLineValue;
         CharacterIndex = CharacterIndexValue;
     }
 } AstNode;
+
+typedef struct GroupNode : AstNode {
+    std::vector<AstNode*> Members;
+
+    GroupNode(AstNodeType NodeTypeValue, int CreationLineValue, int CharacterIndexValue) : AstNode(NodeTypeValue, CreationLineValue, CharacterIndexValue) {
+        Members = {};
+    }
+} GroupNode;
 
 typedef struct NumberNode : AstNode {
     TokenVariant NumberType; 
@@ -58,8 +65,11 @@ typedef struct ModuleNode : AstNode {
 
     std::vector<AstNode*> Body;
 
+    std::vector<Token> Tokens;
+
     ModuleNode(AstNodeType NodeTypeValue, int CreationLineValue, int CharacterIndexValue) : AstNode(NodeTypeValue, CreationLineValue, CharacterIndexValue) {
         Body = {};
+        Tokens = {};
     }
 } ModuleNode;
 
@@ -68,15 +78,21 @@ typedef struct ProgramNode : AstNode {
     std::string FilePath;
 
     std::vector<ModuleNode> Modules;
+
+    std::vector<AstNode*> Nodes;
     std::vector<AstNode*> Body;
+
+    std::vector<Token> Tokens;
 
     ProgramNode(AstNodeType NodeTypeValue, int CreationLineValue, int CharacterIndexValue) : AstNode(NodeTypeValue, CreationLineValue, CharacterIndexValue) {
         Modules = {};
         Body = {};
+        Tokens = {};
+        Nodes = {};
     }
 } ProgramNode;
 
 
-void VisualizeNode(AstNode *Node, int Indentation);
+void VisualizeNode(AstNode *Node, int Indentation, int Limit);
 
 #endif
