@@ -1,17 +1,16 @@
 #include "Utils.hpp"
 
 #include "Lexer/Tokens.hpp"
+#include "Parser/DataTypes.hpp"
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <fstream>
 
-bool IsStringAlpha(std::string Text)
-{
-    for (char Character : Text)
-    {
-        if (!isalpha(Character))
-        {
+bool IsStringAlpha(std::string Text) {
+    for (char Character : Text) {
+        if (!isalpha(Character)) {
             return false;
         }
     }
@@ -19,12 +18,9 @@ bool IsStringAlpha(std::string Text)
     return true;
 }
 
-bool IsStringDigit(std::string Text)
-{
-    for (char Character : Text)
-    {
-        if (!isdigit(Character) && Character != '.')
-        {
+bool IsStringDigit(std::string Text) {
+    for (char Character : Text) {
+        if (!isdigit(Character) && Character != '.') {
             return false;
         }
     }
@@ -45,76 +41,71 @@ int HasCharacterInString(std::string Text, char TargetCharacter) {
 }
 
 std::string OperatorTypeToString(TokenVariant Variant) {
-    switch (Variant) {
-        case TokenVariant_Add:
-            return "Add";
+    static const std::unordered_map<TokenVariant, std::string> OperatorMap = {
+        { TokenVariant_Add, "Add" },
+        { TokenVariant_Subtract, "Subtract" },
+        { TokenVariant_Divide, "Divide" },
+        { TokenVariant_Power, "Power" },
+        { TokenVariant_Multiply, "Multiply" },
+        { TokenVariant_Inequality, "Inequality" },
+        { TokenVariant_Assign, "Assign" }
+    };
 
-        case TokenVariant_Subtract:
-            return "Subtract";
-
-        case TokenVariant_Divide:
-            return "Divide";
-
-        case TokenVariant_Power:
-            return "Power";
-
-        case TokenVariant_Multiply:
-            return "Multiply";
-
-        case TokenVariant_Inequality:
-            return "Inequality";
-
-        case TokenVariant_Assign:
-            return "Assign";
-
-        default:
-            return "Unknown Operation";
+    auto Iterator = OperatorMap.find(Variant);
+    if (Iterator != OperatorMap.end()) {
+        return Iterator->second;
     }
+
+    return "Unknown Operation";
 }
 
 std::string NumberTypeToString(TokenVariant Variant) {
-    switch (Variant) {
-        case TokenVariant_Integer:
-            return "Integer";
+    static const std::unordered_map<TokenVariant, std::string> NumberMap = {
+        { TokenVariant_Integer, "Integer" },
+        { TokenVariant_Float, "Float" },
+        { TokenVariant_Double, "Double" }
+    };
 
-        case TokenVariant_Float:
-            return "Float";
-
-        case TokenVariant_Double:
-            return "Double";
-
-        default:
-            return "Unknown Type";
+    auto Iterator = NumberMap.find(Variant);
+    if (Iterator != NumberMap.end()) {
+        return Iterator->second;
     }
+
+    return "Unknown Type";
 }
 
 std::string TokenTypeToString(TokenVariant Variant) {
-    switch (Variant) {
-        case TokenVariant_Method: return "Method";
-        case TokenVariant_Integer: return "Integer";
-        case TokenVariant_Float: return "Float";
-        case TokenVariant_Double: return "Double";
-        case TokenVariant_String: return "String";
-        case TokenVariant_Character: return "Character";
-        case TokenVariant_Add: return "Add";
-        case TokenVariant_Subtract: return "Subtract";
-        case TokenVariant_Divide: return "Divide";
-        case TokenVariant_Multiply: return "Multiply";
-        case TokenVariant_Power: return "Power";
-        case TokenVariant_Assign: return "Assign";
-        case TokenVariant_Inequality: return "Inequality";
-        case TokenVariant_Bracket: return "Bracket";
-        case TokenVariant_Parentheses: return "Parentheses";
-        case TokenVariant_Dot: return "Dot";
-        case TokenVariant_Colon: return "Colon";
-        case TokenVariant_Comma: return "Comma";
-        case TokenVariant_SemiColon: return "Semicolon";
-        case TokenVariant_SquareBrackets: return "SquareBrackets";
-        case TokenVariant_NewLine: return "Newline";
-        default: return "Unknown";
-    }
-}
+    static const std::unordered_map<TokenVariant, std::string> TokenMap = {
+        { TokenVariant_Method, "Method" },
+        { TokenVariant_Integer, "Integer" },
+        { TokenVariant_Float, "Float" },
+        { TokenVariant_Double, "Double" },
+        { TokenVariant_String, "String" },
+        { TokenVariant_Character, "Character" },
+        { TokenVariant_Add, "Add" },
+        { TokenVariant_Subtract, "Subtract" },
+        { TokenVariant_Divide, "Divide" },
+        { TokenVariant_Multiply, "Multiply" },
+        { TokenVariant_Power, "Power" },
+        { TokenVariant_Assign, "Assign" },
+        { TokenVariant_Inequality, "Inequality" },
+        { TokenVariant_Bracket, "Bracket" },
+        { TokenVariant_Parentheses, "Parentheses" },
+        { TokenVariant_Dot, "Dot" },
+        { TokenVariant_Colon, "Colon" },
+        { TokenVariant_Comma, "Comma" },
+        { TokenVariant_SemiColon, "Semicolon" },
+        { TokenVariant_SquareBracket, "SquareBrackets" },
+        { TokenVariant_NewLine, "Newline" }
+    };
 
+    auto Iterator = TokenMap.find(Variant);
+    if (Iterator != TokenMap.end()) {
+        return Iterator->second;
+    }
+
+    return "Unknown";
+}
 
 std::string GetLineSnippet(std::string FilePath, int Line) {
     std::ifstream File(FilePath);
@@ -127,10 +118,107 @@ std::string GetLineSnippet(std::string FilePath, int Line) {
             if (LineIndex == Line) {
                 return CurrentLine;
             }
-            
+
             LineIndex += 1;
         }
     }
 
     return "Unable to fetch code snippet for line " + std::to_string(Line);
+}
+
+DataTypeVariant StringToDataTypeVariant(std::string Value) {
+    DataTypeVariant Variant;
+
+    for (DataType Type : DataTypes) {
+        if (Value == Type.Value) {
+            Variant.Type = Type.Variants[0].Type;
+            Variant.Value = Type.Value;
+
+            return Variant;
+        }
+
+        for (DataTypeVariant CurrentVariant : Type.Variants) {
+            if (Value == CurrentVariant.Value) {
+                Variant.Type = CurrentVariant.Type;
+                Variant.Value = CurrentVariant.Value;
+
+                return Variant;
+            }
+        }
+    }
+
+    Variant.Value = "Invalid";
+
+    return Variant;
+}
+
+TokenVariant StringToTokenOperation(std::string Value) {
+    static const std::unordered_map<std::string, TokenVariant> OperatorMap = {
+        { "=", TokenVariant_Assign },
+        { "==", TokenVariant_AssignAssign },
+        { "+", TokenVariant_Add },
+        { "++", TokenVariant_Increment },
+        { "+=", TokenVariant_AddAssign },
+        { "-", TokenVariant_Subtract },
+        { "--", TokenVariant_Decrement },
+        { "-=", TokenVariant_SubtractAssign },
+        { "*", TokenVariant_Multiply },
+        { "*=", TokenVariant_MultiplyAssign },
+        { "/", TokenVariant_Divide },
+        { "/=", TokenVariant_DivideAssign },
+        { "^", TokenVariant_Power },
+        { "^=", TokenVariant_PowerAssign },
+        { "!=", TokenVariant_InequalityAssign },
+        { "<", TokenVariant_LessThan },
+        { ">", TokenVariant_GreaterThan },
+        { "<=", TokenVariant_LessThanAssign },
+        { ">=", TokenVariant_GreaterThanAssign }
+    };
+
+    auto Iterator = OperatorMap.find(Value);
+    if (Iterator != OperatorMap.end()) {
+        return Iterator->second;
+    }
+
+    return TokenVariant_Invalid;
+}
+
+std::string TokenOperationToString(TokenVariant Variant) {
+    static const std::unordered_map<TokenVariant, std::string> ReverseOperatorMap = {
+        { TokenVariant_Assign, "=" },
+        { TokenVariant_AssignAssign, "==" },
+        { TokenVariant_Add, "+" },
+        { TokenVariant_Increment, "++" },
+        { TokenVariant_AddAssign, "+=" },
+        { TokenVariant_Subtract, "-" },
+        { TokenVariant_Decrement, "--" },
+        { TokenVariant_SubtractAssign, "-=" },
+        { TokenVariant_Multiply, "*" },
+        { TokenVariant_MultiplyAssign, "*=" },
+        { TokenVariant_Divide, "/" },
+        { TokenVariant_DivideAssign, "/=" },
+        { TokenVariant_Power, "^" },
+        { TokenVariant_PowerAssign, "^=" },
+        { TokenVariant_InequalityAssign, "!=" },
+        { TokenVariant_Inequality, "!" },
+        { TokenVariant_LessThan, "<" },
+        { TokenVariant_GreaterThan, ">" },
+        { TokenVariant_LessThanAssign, "<=" },
+        { TokenVariant_GreaterThanAssign, ">=" }
+    };
+
+    auto Iterator = ReverseOperatorMap.find(Variant);
+    if (Iterator != ReverseOperatorMap.end()) {
+        return Iterator->second;
+    }
+
+    return "Invalid";
+}
+
+std::string BoolToYesNo(bool Value) {
+    if (Value == true) {
+        return "Yes";
+    } else {
+        return "No";
+    }
 }

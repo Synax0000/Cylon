@@ -4,133 +4,79 @@
 #include <vector>
 #include <string>
 
+#include <unordered_map>
+
 #include "Tokens.hpp"
 #include "../Utils.hpp"
 #include "../CommandLine/Output.hpp"
 
-void HandleCharacter(char Character, int Line, int CurrentCharacterIndex, int TokenStartIndex, std::string &DataBuffer, std::vector<Token> &Tokens, std::string FilePath) {
-    if (std::isalpha(Character) && (IsStringAlpha(DataBuffer) || DataBuffer == "")) {
-        DataBuffer += Character;
-        return;
-    } else {
-        if (IsStringAlpha(DataBuffer) && DataBuffer != "") {
-            Tokens.push_back(Token(TokenType_Identifier, TokenVariant_Method, DataBuffer, TokenStartIndex, Line));
-            DataBuffer = "";
+const std::unordered_map<char, std::pair<cTokenType, TokenVariant>> SingleCharacterTokens = {
+    { '=', { TokenType_Operator, TokenVariant_Assign } },
+    { '+', { TokenType_Operator, TokenVariant_Add } },
+    { '-', { TokenType_Operator, TokenVariant_Subtract } },
+    { '*', { TokenType_Operator, TokenVariant_Multiply } },
+    { '^', { TokenType_Operator, TokenVariant_Power } },
+    { '/', { TokenType_Operator, TokenVariant_Divide } },
+    { '>', { TokenType_Operator, TokenVariant_GreaterThan } },
+    { '<', { TokenType_Operator, TokenVariant_LessThan } },
+    { ':', { TokenType_Symbol, TokenVariant_Colon } },
+    { '!', { TokenType_Symbol, TokenVariant_Inequality } },
+    { '.', { TokenType_Symbol, TokenVariant_Dot } },
+    { ',', { TokenType_Symbol, TokenVariant_Comma } },
+    { ';', { TokenType_Symbol, TokenVariant_SemiColon } },
+    { '{', { TokenType_Symbol, TokenVariant_Bracket } },
+    { '}', { TokenType_Symbol, TokenVariant_Bracket } },
+    { '(', { TokenType_Symbol, TokenVariant_Parentheses } },
+    { ')', { TokenType_Symbol, TokenVariant_Parentheses } },
+    { '[', { TokenType_Symbol, TokenVariant_SquareBracket } },
+    { ']', { TokenType_Symbol, TokenVariant_SquareBracket } },
+    { '\n', { TokenType_Symbol, TokenVariant_NewLine } }
+};
+
+void HandleCharacter(char Character, int Line, int CurrentCharacterIndex, int& TokenStartIndex, std::string& DataBuffer, std::vector<Token>& Tokens, std::string FilePath) {
+    if (std::isalnum(Character)) {
+        if (DataBuffer.empty() || std::isalnum(DataBuffer.back())) {
+            DataBuffer += Character;
+            return;
+        } else {
+            if (std::isalpha(DataBuffer.back())) {
+                Tokens.push_back(Token(TokenType_Identifier, TokenVariant_Method, DataBuffer, TokenStartIndex, Line));
+            } else {
+                TokenVariant Variant = HasCharacterInString(DataBuffer, '.') > 0 ? TokenVariant_Double : TokenVariant_Integer;
+                Tokens.push_back(Token(TokenType_Number, Variant, DataBuffer, TokenStartIndex, Line));
+            }
+
+            DataBuffer.clear();
+            TokenStartIndex = CurrentCharacterIndex;
+            DataBuffer += Character;
+            return;
         }
-    }
-
-    if ((std::isdigit(Character) || Character == '.') && (IsStringDigit(DataBuffer) || DataBuffer == "")) {
-        DataBuffer += Character;
-        return;
     } else {
-        if (IsStringDigit(DataBuffer) && DataBuffer != "") {
-            TokenVariant Varient = TokenVariant_Integer;
-
-            if (HasCharacterInString(DataBuffer, '.') > 0) {
-                if (HasCharacterInString(DataBuffer, '.') > 1) {
-                    logsnippet(-1, FilePath, "[LINE: " + std::to_string(Line) + "] Number has too many decimal points '" + DataBuffer + "'", Line, TokenStartIndex);
-                    exit(-1);
-                }
-
-                Varient = TokenVariant_Double;
+        if (!DataBuffer.empty()) {
+            if (std::isalpha(DataBuffer.front())) {
+                Tokens.push_back(Token(TokenType_Identifier, TokenVariant_Method, DataBuffer, TokenStartIndex, Line));
+            } else {
+                TokenVariant Variant = HasCharacterInString(DataBuffer, '.') > 0 ? TokenVariant_Double : TokenVariant_Integer;
+                Tokens.push_back(Token(TokenType_Number, Variant, DataBuffer, TokenStartIndex, Line));
             }
 
-            if (Character == 'f') {
-                Varient = TokenVariant_Float;
-            }
-
-            Tokens.push_back(Token(TokenType_Number, Varient, DataBuffer, TokenStartIndex, Line));
-            DataBuffer = "";
+            DataBuffer.clear();
         }
-    }
 
-    if (std::isalpha(Character) || std::isdigit(Character)) {
-        return;
-    }
-
-    switch (Character) {
-        case '=':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Assign, std::string(1, Character), CurrentCharacterIndex, Line));
+        if (Character == ' ' || Character == '\t') {
+            TokenStartIndex = CurrentCharacterIndex + 1;
             return;
+        }
 
-        case '+':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Add, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
+        auto Iterator = SingleCharacterTokens.find(Character);
+        if (Iterator != SingleCharacterTokens.end()) {
+            Tokens.push_back(Token(Iterator->second.first, Iterator->second.second, std::string(1, Character), CurrentCharacterIndex, Line));
+        } else {
+            logsnippet(-1, FilePath, "[LINE: " + std::to_string(Line) + "] Invalid Character '" + std::string(1, Character) + "'", Line, CurrentCharacterIndex);
+            exit(-1);
+        }
 
-        case '-':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Subtract, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '*':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Multiply, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '^':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Power, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '/':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Divide, std::string(1, Character), CurrentCharacterIndex, Line)); 
-            return;
-
-        case '>':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Inequality, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '<':
-            Tokens.push_back(Token(TokenType_Operator, TokenVariant_Inequality, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case ':':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_Colon, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '.':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_Dot, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case ',':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_Comma, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case ';':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_SemiColon, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '{':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_Bracket, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '}':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_Bracket, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '(':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_Parentheses, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case ')':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_Parentheses, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '[':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_SquareBrackets, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case ']':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_SquareBrackets, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        case '\n':
-            Tokens.push_back(Token(TokenType_Symbol, TokenVariant_NewLine, std::string(1, Character), CurrentCharacterIndex, Line));
-            return;
-
-        default:
-            if (Character != ' ' && Character != '\t') {
-                logsnippet(-1,  FilePath, "[LINE: " + std::to_string(Line) + "] Invaild Character '" + std::string(1, Character) + "'", Line, CurrentCharacterIndex);
-                exit(-1);
-            }
-            return;
+        TokenStartIndex = CurrentCharacterIndex + 1;
     }
 }
 
@@ -170,6 +116,8 @@ std::vector<Token> Tokenize(std::string Source, std::string FilePath) {
     if (!DataBuffer.empty()) {
         HandleCharacter(' ', Line, CharacterIndex, TokenStartIndex, DataBuffer, Tokens, FilePath);
     }
+
+    Tokens.push_back(Token(TokenType_Symbol, TokenVariant_EOF, "EOF", CharacterIndex, Line));
 
     return Tokens;
 }

@@ -11,14 +11,14 @@ std::vector<Command> Commands = {
         CFLAG_INPUTFILE,
         true,
         {"-i","--input"},
-        "Tells the Compiler which file to compile as the Main Source"
+        "Defines which file to compile as the main source"
     ),
 
     Command(
         CFLAG_OUTPUTFILE,
         true,
         {"-o","--output"},
-        "Tells the Compiler what the Compiled Executable should be named"
+        "Defines what the finished Executable should be named"
     ),
 
     Command(
@@ -40,6 +40,27 @@ std::vector<Command> Commands = {
         false,
         {"-d","--debug"},
         "Enables the debug output for Cylon"
+    ),
+
+    Command(
+        CFLAG_ASTVISUALIZATIONLIMIT,
+        true,
+        {"-avl","--astviewlimit"},
+        "Defines the amount of nodes to show before truncating"
+    ),
+
+    Command(
+        CFLAG_DONTDISPLAYASTTREE,
+        false,
+        {"-ddast","--noast"},
+        "Defines whether the ast should be shown in debug mode"
+    ),
+
+    Command(
+        CFLAG_DONTDISPLAYTOKENS,
+        false,
+        {"-ddt","--notokenlist"},
+        "Defines whether the token list should be shown in debug mode"
     ),
 };
 

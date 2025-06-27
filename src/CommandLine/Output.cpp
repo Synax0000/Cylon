@@ -52,9 +52,14 @@ void log(int LogLevel, std::string Text) {
 }
 
 void logsnippet(int LogLevel, std::string FilePath, std::string Context, int Line, int Character) {
-    std::string Spaces = std::string(" ", Character);
+    std::string Spaces(Character, ' ');
 
-    log(LogLevel, "[ " + FilePath + " ] " + Context);
+    if (Line <= 0) {
+        Line = 1;
+    }
+
+    log(LogLevel, "[" + FilePath + "] [LINE: " + std::to_string(Line) + "] " + Context);
+    
     std::cout << "> " + GetLineSnippet(FilePath, Line) << std::endl;
-    std::cout << Spaces +  "  ^" << std::endl;
+    std::cout << Spaces +  " ^" << std::endl;
 }

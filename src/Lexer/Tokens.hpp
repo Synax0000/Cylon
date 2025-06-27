@@ -10,7 +10,8 @@ typedef enum cTokenType { // "c" is placed there to avoid windows conflicts
     TokenType_Number,
     TokenType_String,
     TokenType_Operator,
-    TokenType_Symbol
+    TokenType_Symbol,
+    TokenType_Special,
 } cTokenType;
 
 typedef enum TokenVariant {
@@ -34,6 +35,21 @@ typedef enum TokenVariant {
     TokenVariant_Power,
     TokenVariant_Assign,
     TokenVariant_Inequality, 
+    TokenVariant_LessThan,
+    TokenVariant_GreaterThan,
+
+    TokenVariant_AddAssign,
+    TokenVariant_SubtractAssign,
+    TokenVariant_DivideAssign,
+    TokenVariant_MultiplyAssign,
+    TokenVariant_PowerAssign,
+    TokenVariant_AssignAssign,
+    TokenVariant_LessThanAssign,
+    TokenVariant_GreaterThanAssign,
+    TokenVariant_InequalityAssign, 
+
+    TokenVariant_Increment,
+    TokenVariant_Decrement,
 
     // TokenType_Symbol
     TokenVariant_Bracket,
@@ -42,8 +58,11 @@ typedef enum TokenVariant {
     TokenVariant_Colon,
     TokenVariant_Comma,
     TokenVariant_SemiColon,
-    TokenVariant_SquareBrackets,
+    TokenVariant_SquareBracket,
     TokenVariant_NewLine,
+
+    TokenVariant_EOF,
+    TokenVariant_Invalid 
 } TokenVariant;
 
 typedef struct Token {

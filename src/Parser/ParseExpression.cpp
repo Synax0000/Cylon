@@ -10,44 +10,40 @@
 
 AstNode* ParseFactor(
     std::string FilePath,
-    std::vector<AstNode*>& Body,
     std::vector<AstNode*>& NodeList,
     std::vector<Token>& TokenList,
     int& CurrentIndex,
     int& CurrentLine,
     int& CurrentCharacter
 ) {
-    UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-    Token CurrentToken = GetCurrentToken(TokenList, CurrentIndex);
-
-    if (CurrentToken.Type == TokenType_Number) {
-        AstNode* CreatedNode = new NumberNode(AstNodeType_NumberNode, CurrentToken.Variant, CurrentToken.Value, CurrentLine, CurrentCharacter);
-        NodeList.push_back(CreatedNode);
-        AdvanceToken(CurrentIndex, TokenList);
-        UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-
-        if (CurrentIndex < TokenList.size() && GetCurrentToken(TokenList, CurrentIndex).Variant == TokenVariant_Power) {
-            int OperatorLine = GetCurrentToken(TokenList, CurrentIndex).LineIndex;
-            int OperatorCharacter = GetCurrentToken(TokenList, CurrentIndex).CharacterIndex;
-
-            AdvanceToken(CurrentIndex, TokenList);
-            UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-
-            AstNode* RightNode = ParseFactor(FilePath, Body, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-            AstNode* OperationNode = new OperatorNode(AstNodeType_OperatorNode, CreatedNode, RightNode, TokenVariant_Power, OperatorLine, OperatorCharacter);
-            Body.push_back(OperationNode);
-            return OperationNode;
-        }
-        return CreatedNode;
+    if (CurrentIndex >= TokenList.size()) {
+        return nullptr;
     }
 
-    if (CurrentToken.Variant == TokenVariant_Parentheses && CurrentToken.Value == "(") {
+    UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+    Token CurrentToken = GetCurrentToken(TokenList, CurrentIndex);
+    
+    AstNode* LeftNode = nullptr;
+
+    if (CurrentToken.Type == TokenType_Number) {
+        LeftNode = new NumberNode(AstNodeType_NumberNode, CurrentToken.Variant, CurrentToken.Value, CurrentLine, CurrentCharacter);
+        NodeList.push_back(LeftNode);
+
+        AdvanceToken(CurrentIndex, TokenList);
+        UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+    } else if (CurrentToken.Type == TokenType_Identifier) {
+        LeftNode = new VariableNode(AstNodeType_VariableNode, CurrentToken.Value, CurrentLine, CurrentCharacter);
+        NodeList.push_back(LeftNode);
+
+        AdvanceToken(CurrentIndex, TokenList);
+        UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+    } else if (CurrentToken.Variant == TokenVariant_Parentheses && CurrentToken.Value == "(") {
         AdvanceToken(CurrentIndex, TokenList);
         UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
 
-        AstNode* InnerNode = ParseExpression(FilePath, Body, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+        AstNode* InnerNode = ParseExpression(FilePath, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
 
-        if (CurrentIndex >= (int)TokenList.size() || GetCurrentToken(TokenList, CurrentIndex).Value != ")") {
+        if (CurrentIndex >= TokenList.size() || MatchToken(TokenList, CurrentIndex, ")") == false) {
             logsnippet(-1, FilePath, "Expected closing parenthesis", CurrentLine, CurrentCharacter);
             exit(-1);
         }
@@ -57,34 +53,40 @@ AstNode* ParseFactor(
 
         AstNode* GroupedNode = new GroupNode(AstNodeType_GroupNode, CurrentToken.LineIndex, CurrentToken.CharacterIndex);
 
-        GroupNode* CastedNode = static_cast<GroupNode*>(GroupedNode);
-        CastedNode->Members.push_back(InnerNode);
-
+        static_cast<GroupNode*>(GroupedNode)->Members.push_back(InnerNode);
         NodeList.push_back(GroupedNode);
 
-        if (CurrentIndex < TokenList.size() && GetCurrentToken(TokenList, CurrentIndex).Variant == TokenVariant_Power) {
-            int OperatorLine = GetCurrentToken(TokenList, CurrentIndex).LineIndex;
-            int OperatorCharacter = GetCurrentToken(TokenList, CurrentIndex).CharacterIndex;
+        LeftNode = GroupedNode;
 
-            AdvanceToken(CurrentIndex, TokenList);
-            UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+        Token NextToken = GetCurrentToken(TokenList, CurrentIndex);
 
-            AstNode* RightNode = ParseFactor(FilePath, Body, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-            AstNode* OperationNode = new OperatorNode(AstNodeType_OperatorNode, GroupedNode, RightNode, TokenVariant_Power, OperatorLine, OperatorCharacter);
-            Body.push_back(OperationNode);
-            return OperationNode;
+        if (NextToken.Type == TokenType_Number || NextToken.Variant == TokenVariant_Parentheses && NextToken.Value == "(") {
+            logsnippet(-1, FilePath, "Expected operator between expressions", CurrentLine, CurrentCharacter);
+            exit(-1);
         }
-
-        return GroupedNode;
+    } else {
+        UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+        logsnippet(-1, FilePath, "Invaild expression", CurrentLine, CurrentCharacter);
+        exit(-1);
     }
 
-    logsnippet(-1, FilePath, "Expected number or opening parentheses", CurrentLine, CurrentCharacter);
-    return nullptr;
+    while (CurrentIndex < TokenList.size() && GetCurrentToken(TokenList, CurrentIndex).Variant == TokenVariant_Power) {
+        int OperatorLine = GetCurrentToken(TokenList, CurrentIndex).LineIndex;
+        int OperatorCharacter = GetCurrentToken(TokenList, CurrentIndex).CharacterIndex;
+
+        AdvanceToken(CurrentIndex, TokenList);
+        UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+
+        AstNode* RightNode = ParseFactor(FilePath, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+        LeftNode = new OperatorNode(AstNodeType_OperatorNode, LeftNode, RightNode, TokenVariant_Power, OperatorLine, OperatorCharacter);
+    }
+
+    return LeftNode;
 }
+
 
 AstNode* ParseTerm(
     std::string FilePath,
-    std::vector<AstNode*>& Body,
     std::vector<AstNode*>& NodeList,
     std::vector<Token>& TokenList,
     int& CurrentIndex,
@@ -92,7 +94,7 @@ AstNode* ParseTerm(
     int& CurrentCharacter
 ) {
     UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-    AstNode* LeftNode = ParseFactor(FilePath, Body, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+    AstNode* LeftNode = ParseFactor(FilePath, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
 
     while (CurrentIndex < TokenList.size()) {
         Token CurrentToken = GetCurrentToken(TokenList, CurrentIndex);
@@ -103,30 +105,33 @@ AstNode* ParseTerm(
 
         int OperatorLine = CurrentToken.LineIndex;
         int OperatorCharacter = CurrentToken.CharacterIndex;
+
         AdvanceToken(CurrentIndex, TokenList);
         UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
 
-        AstNode* RightNode = ParseFactor(FilePath, Body, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-        AstNode* OperationNode = new OperatorNode(AstNodeType_OperatorNode, LeftNode, RightNode, CurrentToken.Variant, OperatorLine, OperatorCharacter);
+        AstNode* RightNode = ParseFactor(FilePath, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+        LeftNode = new OperatorNode(AstNodeType_OperatorNode, LeftNode, RightNode, CurrentToken.Variant, OperatorLine, OperatorCharacter);
 
-        Body.push_back(OperationNode);
-        LeftNode = OperationNode;
     }
 
     return LeftNode;
 }
 
+
 AstNode* ParseExpression(
     std::string FilePath,
-    std::vector<AstNode*>& Body,
     std::vector<AstNode*>& NodeList,
     std::vector<Token>& TokenList,
     int& CurrentIndex,
     int& CurrentLine,
     int& CurrentCharacter
 ) {
+    if (CurrentIndex >= TokenList.size()) {
+        return nullptr;
+    }
+
     UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
-    AstNode* LeftNode = ParseTerm(FilePath, Body, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+    AstNode* LeftNode = ParseTerm(FilePath, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
 
     while (CurrentIndex < TokenList.size()) {
         Token CurrentToken = GetCurrentToken(TokenList, CurrentIndex);
@@ -137,15 +142,16 @@ AstNode* ParseExpression(
 
         int OperatorLine = CurrentToken.LineIndex;
         int OperatorCharacter = CurrentToken.CharacterIndex;
+        
         AdvanceToken(CurrentIndex, TokenList);
         UpdateCurrentLocation(TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
 
-        AstNode* RightNode = ParseTerm(FilePath, Body, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
+        AstNode* RightNode = ParseTerm(FilePath, NodeList, TokenList, CurrentIndex, CurrentLine, CurrentCharacter);
         AstNode* OperationNode = new OperatorNode(AstNodeType_OperatorNode, LeftNode, RightNode, CurrentToken.Variant, OperatorLine, OperatorCharacter);
 
-        NodeList.push_back(OperationNode);
         LeftNode = OperationNode;
     }
 
     return LeftNode;
 }
+

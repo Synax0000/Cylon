@@ -54,7 +54,18 @@ int main(int argc, char* argv[]) {
             case CFLAG_DEBUG:
                 DEBUG = true;
                 break;
-            
+
+            case CFLAG_ASTVISUALIZATIONLIMIT:
+                AstVisualizationLimit = std::stoi(Flag.Value);
+                break;
+
+            case CFLAG_DONTDISPLAYASTTREE:
+                DisplayAst = false;
+                break;
+
+            case CFLAG_DONTDISPLAYTOKENS:
+                DisplayTokenList = false;
+                break;
             default:
                 break;
         }
@@ -64,7 +75,7 @@ int main(int argc, char* argv[]) {
     std::string InputFile = GetFlag(CFLAGS, CFLAG_INPUTFILE).Value;
 
     if (InputFile == "") {
-        log(-1, "No input file provided");
+        log(-1, "No input file provided, use 'cylon --help' for more information on available commands");
         exit(-1);
     }
 
@@ -95,34 +106,52 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-
-    log(2, "Tokenizing Source '" + InputFile + "'");
-
-    std::vector<Token> SourceTokens = Tokenize(Source, InputFile);
-    
-    log(2, "Displaying generated tokens");
-
-    if (DEBUG == true) { 
-        for (Token CurrentToken : SourceTokens) {
-            std::cout << "\n" + TokenTypeToString(CurrentToken.Variant) + ":" << std::endl;
-            std::cout << " Line: " + std::to_string(CurrentToken.LineIndex) << std::endl;
-            std::cout << " Character: " + std::to_string(CurrentToken.CharacterIndex + 1) << std::endl;
-            std::cout << " Value: " + CurrentToken.Value << std::endl;
-        }
-
-        std::cout << std::endl;
-    }
-
     size_t LastSlash = InputFile.find_last_of("/\\");
     std::string FileName = InputFile.substr(LastSlash + 1);
 
-    ProgramNode AstTree = Parse(SourceTokens, FileName, InputFile);
 
-    log(2, "Displaying generated Ast Tree");
+    log(2, "Tokenizing Source '" + InputFile + "'");
 
-    if (DEBUG == true) {
-        std::cout << std::endl;
-        VisualizeNode(&AstTree, 0, 12);
+    std::vector<Token> SourceTokens;
+    
+    try {
+        SourceTokens = Tokenize(Source, InputFile);
+    } catch(...) {
+        log(-1, "Failed to tokenize '" + FileName + "'");
+        exit(-1);
+    }
+
+    if (DisplayTokenList == true) {
+        log(2, "Displaying generated tokens");
+
+        if (DEBUG == true) { 
+            for (Token CurrentToken : SourceTokens) {
+                std::cout << "\n" + TokenTypeToString(CurrentToken.Variant) + ":" << std::endl;
+                std::cout << " Line: " + std::to_string(CurrentToken.LineIndex) << std::endl;
+                std::cout << " Character: " + std::to_string(CurrentToken.CharacterIndex + 1) << std::endl;
+                std::cout << " Value: " + CurrentToken.Value << std::endl;
+            }
+
+            std::cout << std::endl;
+        }
+    }
+
+    ProgramNode AstTree;
+
+    try {
+        AstTree = Parse(SourceTokens, FileName, InputFile);
+    } catch(...) {
+        log(-1, "Failed to parse '" + FileName + "'");
+        exit(-1);
+    }
+
+    if (DisplayAst == true) {
+        log(2, "Displaying generated Ast Tree");
+
+        if (DEBUG == true) {
+            std::cout << std::endl;
+            VisualizeNode(&AstTree, 0, AstVisualizationLimit);
+        }
     }
 
     return 0;

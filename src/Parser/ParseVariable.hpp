@@ -4,32 +4,23 @@
 #include "../CommandLine/Output.hpp"
 #include "../Utils.hpp"
 
-#ifndef PARSEEXPRESSION_HPP
-#define PARSEEXPRESSION_HPP
+#ifndef PARSEVARIABLE_HPP
+#define PARSEVARIABLE_HPP
 
-AstNode* ParseTerm(
+AstNode* ParseDeclaration(
     std::string FilePath, 
     std::vector<AstNode*>& NodeList, 
     std::vector<Token>& TokenList, 
-    int& CurrentIndex, 
+    int &CurrentIndex, 
     int &CurrentLine, 
     int &CurrentCharacter
 );
 
-AstNode* ParseFactor(
+AstNode* ParseAssignment(
     std::string FilePath, 
     std::vector<AstNode*>& NodeList, 
     std::vector<Token>& TokenList, 
-    int& CurrentIndex, 
-    int &CurrentLine, 
-    int &CurrentCharacter
-);
-
-AstNode* ParseExpression(
-    std::string FilePath, 
-    std::vector<AstNode*>& NodeList, 
-    std::vector<Token>& TokenList, 
-    int& CurrentIndex, 
+    int &CurrentIndex, 
     int &CurrentLine, 
     int &CurrentCharacter
 );
